@@ -21,6 +21,7 @@ if not st.session_state.logged_in:
     st.stop()
 
 df = pd.read_csv('student-scores.csv')
+df = df.loc[:, ~df.columns.duplicated()].copy()
 
 st.sidebar.title("Filter Data")
 st.sidebar.write("Filter data sesuai kebutuhan kamu.")
@@ -44,13 +45,13 @@ st.write("---")
 
 st.subheader("Data Awal")
 st.write("Ini adalah isi dataset yang kita pakai. Scroll ke kanan kalau kolomnya banyak.")
-st.dataframe(df.head())
+st.write(df.head().to_html(), unsafe_allow_html=True)
 
 st.write("---")
 
 st.subheader("Missing Values")
 st.write("Cek dulu apakah ada data yang kosong. Kalau ada yang kosong, bisa pengaruh ke hasil analisis nanti.")
-st.write(df.isnull().sum())
+st.write(df.isnull().sum().to_frame("Jumlah Missing").to_html(), unsafe_allow_html=True)
 
 st.write("---")
 
@@ -94,9 +95,46 @@ st.pyplot(fig3)
 st.write("---")
 
 st.subheader("Perbandingan Dua Mata Pelajaran")
-st.write("Pilih dua mata pelajaran dan lihat perbandingan nilainya lewat boxplot. Bisa keliatan mana yang nilainya lebih tinggi atau lebih merata.")
+st.write("Pilih dua mata pelajaran dan lihat perbandingan nilainya lewat boxplot.")
 col_1 = st.selectbox("Pilih mapel pertama:", numeric_cols, key="col1")
 col_2 = st.selectbox("Pilih mapel kedua:", numeric_cols, key="col2")
 fig4, ax4 = plt.subplots()
 sns.boxplot(data=df[[col_1, col_2]], ax=ax4)
 st.pyplot(fig4)
+
+st.write("Ini statistik singkat dari dua mapel yang kamu pilih.")
+desc = df[[col_1, col_2]].describe()
+st.write(desc.to_html(), unsafe_allow_html=True)
+
+st.write("---")
+
+st.subheader("Grafik Tambahan")
+st.write("Grafik di bawah ini biar kamu bisa lihat perbandingan dua mapel tadi dari sisi yang berbeda.")
+
+kiri, kanan = st.columns(2)
+
+with kiri:
+    st.write(f"Distribusi {col_1}")
+    fig5, ax5 = plt.subplots()
+    sns.histplot(df[col_1], kde=True, ax=ax5, color='steelblue')
+    st.pyplot(fig5)
+
+with kanan:
+    st.write(f"Distribusi {col_2}")
+    fig6, ax6 = plt.subplots()
+    sns.histplot(df[col_2], kde=True, ax=ax6, color='salmon')
+    st.pyplot(fig6)
+
+kiri2, kanan2 = st.columns(2)
+
+with kiri2:
+    st.write(f"Boxplot {col_1}")
+    fig7, ax7 = plt.subplots()
+    sns.boxplot(y=df[col_1], ax=ax7, color='steelblue')
+    st.pyplot(fig7)
+
+with kanan2:
+    st.write(f"Boxplot {col_2}")
+    fig8, ax8 = plt.subplots()
+    sns.boxplot(y=df[col_2], ax=ax8, color='salmon')
+    st.pyplot(fig8)
